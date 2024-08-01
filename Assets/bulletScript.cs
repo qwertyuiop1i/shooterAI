@@ -16,12 +16,12 @@ public class bulletScript : MonoBehaviour
         
     }
 
-    private void OnCollisionEnter2D(Collision2D collision)
+    private void OnTriggerEnter2D(Collider2D collision)
     {
         if (collision.gameObject.CompareTag("Player"))
         {
             collision.gameObject.GetComponent<health>().hp -= 1f;
         }
-        Destroy(collision.gameObject);
+        Destroy(gameObject);
     }
 }
