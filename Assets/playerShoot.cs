@@ -16,12 +16,13 @@ public class playerShoot : MonoBehaviour
         if (Input.GetMouseButton(0) && Time.time >= nextTimeToFire)
         {
             Shoot();
-            nextTimeToFire = Time.time + 1f / fireRate;
+            
         }
     }
 
     void Shoot()
     {
         Instantiate(bulletPrefab, firePoint.position, firePoint.rotation).GetComponent<Rigidbody2D>().velocity = firePoint.up * bulletSpeed;
+        nextTimeToFire = Time.time + 1f / fireRate;
     }
 }

@@ -7,12 +7,12 @@ public class AIshoot : MonoBehaviour
 
     public Transform firePoint;
     public GameObject bulletPrefab;
-    public GameObject player;
+   
 
     public float fireRate = 3f;
     public float bulletSpeed = 10f;
 
-    private float nextTimeToFire = 0f;
+    public float nextTimeToFire = 0f;
 
     // Start is called before the first frame update
     void Start()
@@ -26,11 +26,13 @@ public class AIshoot : MonoBehaviour
         
     }
 
-    void Shoot()
+    public void Shoot()
     {
-        Vector2 directionToPlayer = (player.transform.position - transform.position).normalized;
+        
 
         Instantiate(bulletPrefab, firePoint.position, firePoint.rotation).GetComponent<Rigidbody2D>().velocity = firePoint.up * bulletSpeed;
+
+        nextTimeToFire = Time.time + 1f / fireRate;
 
         ///add prediction. if i shoot right now this instance, where do i need to shoot to guarrantee it hits the player, assumngi the player travels at the ssame velocity.
     }
