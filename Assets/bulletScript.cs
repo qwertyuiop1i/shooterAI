@@ -22,6 +22,9 @@ public class bulletScript : MonoBehaviour
         {
             collision.gameObject.GetComponent<health>().hp -= 1f;
         }
-        Destroy(gameObject);
+        if (!collision.gameObject.CompareTag("bullet"))
+        {
+            Destroy(gameObject);
+        }
     }
 }

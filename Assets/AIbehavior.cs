@@ -23,7 +23,22 @@ public class AIbehavior : MonoBehaviour
     void Update()
     {
 
-        Vector2 dir = new Vector2(0f, 0f);
+        Vector2 dir = Vector2.zero;
+
+        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 2f);
+        foreach (Collider2D hit in hits)
+        {
+            if (hit.CompareTag("bullet"))
+            {
+
+                Vector2 bulletDirection = hit.transform.position - transform.position;
+                if (Vector2.Dot(bulletDirection, hit.GetComponent<Rigidbody2D>().velocity) > 0f)
+                {
+              
+                    dir -= bulletDirection.normalized;
+                }
+            }
+        }
 
         Vector2 movement = dir.normalized * speed;
         rb.velocity = movement;
@@ -35,14 +50,14 @@ public class AIbehavior : MonoBehaviour
             if (player.GetComponent<Rigidbody2D>().velocity.magnitude == 0f)
             {
 
-                rb.rotation = Mathf.Atan2(player.transform.position.y-transform.position.y, player.transform.position.x-transform.position.x) * Mathf.Rad2Deg;
+                rb.rotation = Mathf.Atan2(player.transform.position.y-transform.position.y, player.transform.position.x-transform.position.x) * Mathf.Rad2Deg-90f;
             }
             else
             {
                 Vector2 playerVel=player.GetComponent<Rigidbody2D>().velocity;
                 float estimatedTime = Vector2.Distance(shoot.firePoint.position, player.transform.position) / shoot.bulletSpeed;
                 Vector2 futurePos = predictDir(transform.position, shoot.bulletSpeed, player.transform.position, player.GetComponent<Rigidbody2D>().velocity);
-                rb.rotation = Mathf.Atan2(futurePos.y,futurePos.x) * Mathf.Rad2Deg - 90f;
+                rb.rotation = Mathf.Atan2(futurePos.y,futurePos.x) * Mathf.Rad2Deg+90f;
                 //predictFuturePos(player.transform, playerVel,t)
                 Debug.DrawLine(transform.position, futurePos);
             }
