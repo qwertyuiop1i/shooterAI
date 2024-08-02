@@ -33,24 +33,68 @@ public class AIbehavior : MonoBehaviour
 
     public Tilemap level;
 
-
+    public int[,] grid;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         lr = GetComponent<LineRenderer>();
         
         level.CompressBounds();
-        Debug.Log(level.GetTile(level.WorldToCell(new Vector2(-43.5f, 25.5f))));
+        //Debug.Log(level.GetTile(level.WorldToCell(new Vector2(-43.5f, 25.5f))));
+
+        grid = new int[level.size.x, level.size.y];
+
+        for (int x = 0; x < level.size.x; x++)
+        {
+            for (int y = 0; y < level.size.y; y++)
+            {
+                if (level.GetTile(new Vector3Int(x, y, 0)) == null)
+                {
+                    grid[x, y] = 0;
+                }
+                else
+                {
+                    grid[x, y] = 1;
+                }
+                
+            }
+        }
     }
     
-    public Vector2 nextDir(Vector2 start, Vector2 goal)
+    public Vector2 NextDir(Vector3 start, Vector3 goal)
     {
-        return Vector2.zero;
+        Vector3Int startPos = level.WorldToCell(start);
+        Vector3Int goalPos = level.WorldToCell(goal);
+
+        int[,] distances = new int[level.size.x, level.size.y];
+        bool[,] visited = new bool[level.size.x, level.size.y];
+
+        float Hcost;
+        float Gcost;
+        float Fcost;
+
+        for (int x = 0; x < level.size.x; x++)
+        {
+            for (int y = 0; y < level.size.y; y++)
+            {
+                distances[x, y] = int.MaxValue;
+                visited[x, y] = false;
+            }
+        }
+
+        distances[(int)start.x,(int) start.y] = 0;
+
+        PriorityQueue<(int, int), int> pq = new PriorityQueue<(int, int), int>();
+        pq.Enqueue((startX, startY), 0);
+
     }
 
     // Update is called once per frame
     void Update()
     {
+        nextDir(Vector2.one,Vector2.zero);
+
+
         Vector2 dir = Vector2.zero;
 
 
