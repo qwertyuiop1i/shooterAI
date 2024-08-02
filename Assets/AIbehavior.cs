@@ -21,10 +21,13 @@ public class AIbehavior : MonoBehaviour
     public float escapeWeight = 6f;
 
     public float travelWeight = 15f;
+
+    public bool shouldUseLinerenderer = true;
+    public LineRenderer lr;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
-
+        lr = GetComponent<LineRenderer>();
         
     }
 
@@ -50,7 +53,7 @@ public class AIbehavior : MonoBehaviour
             }
         }
 
-        if (wallCount >= 1)
+        if (wallCount > 1)
         {
            
             dir += escapeDirection.normalized*escapeWeight;
@@ -60,7 +63,7 @@ public class AIbehavior : MonoBehaviour
                 Vector2 direction = Quaternion.Euler(0, 0, angle) * Vector2.up; 
                 RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, raycastDistance, LayerMask.GetMask("walls"));
 
-                if (!hit.collider) 
+                if (!hit) 
                 {
                     dir += direction * escapeWeight; 
                 }
@@ -79,16 +82,14 @@ public class AIbehavior : MonoBehaviour
         {
             if (collider.CompareTag("bullet"))
             {
-                if(Vector2.Distance(collider.gameObject.transform.position,transform.position)>Vector2.Distance((Vector2)collider.gameObject.transform.position+0.1f*collider.GetComponent<Rigidbody2D>().velocity,transform.position))
-                dodgeDirection = (transform.position - collider.transform.position).normalized;
-                dir += dodgeDirection*bulletWeight+new Vector2(0.1f,0.1f);
+                if (Vector2.Distance(collider.gameObject.transform.position, transform.position) > Vector2.Distance((Vector2)collider.gameObject.transform.position + 0.1f * collider.GetComponent<Rigidbody2D>().velocity, transform.position))
+                {
+                    dodgeDirection = (transform.position - collider.transform.position).normalized;
+                    dir += dodgeDirection * bulletWeight + new Vector2(0.1f, 0.1f);
+                }
                 
             }
-            if (collider.CompareTag("wall"))
-            {
-                dodgeDirection = (transform.position - collider.transform.position).normalized;
-                dir += dodgeDirection;
-            }
+
         }
 
 
@@ -114,6 +115,12 @@ public class AIbehavior : MonoBehaviour
                 }
             }
             rb.angularVelocity = 0f;
+            if (shouldUseLinerenderer)
+            {
+                lr.SetPosition(0, transform.position);
+                lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2),Mathf.Sin(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2))*50f);
+            }
+
             shoot.Shoot();
         }
 
