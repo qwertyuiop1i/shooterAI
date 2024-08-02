@@ -5,11 +5,12 @@ TagManager:
   serializedVersion: 2
   tags:
   - bullet
+  - wall
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - walls
   - Water
   - UI
   - 

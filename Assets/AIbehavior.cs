@@ -14,6 +14,12 @@ public class AIbehavior : MonoBehaviour
 
     public float dodgeDistance = 2f;
 
+    public float bulletWeight = 2f;
+
+    public float raycastDistance = 8f;
+
+    public float escapeWeight = 6f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -24,8 +30,28 @@ public class AIbehavior : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-
         Vector2 dir = Vector2.zero;
+
+
+        int wallCount = 0;
+        Vector2[] directions = { Vector2.up, Vector2.right, Vector2.down, Vector2.left };
+        Vector2 escapeDirection = Vector2.zero;
+
+        foreach (Vector2 x in directions)
+        {
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, x, raycastDistance, LayerMask.GetMask("walls"));
+            if (hit.collider != null)
+            {
+                wallCount++;
+                escapeDirection -= x;
+            }
+        }
+
+        if (wallCount >= 2)
+        {
+           
+            dir += escapeDirection.normalized*escapeWeight;
+        }
 
 
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, dodgeDistance);
@@ -36,10 +62,15 @@ public class AIbehavior : MonoBehaviour
         {
             if (collider.CompareTag("bullet"))
             {
-                shouldDodge = true;
+                //shouldDodge = true;
+                dodgeDirection = (transform.position - collider.transform.position).normalized;
+                dir += dodgeDirection*bulletWeight+new Vector2(0.1f,0.1f);
+                
+            }
+            if (collider.CompareTag("wall"))
+            {
                 dodgeDirection = (transform.position - collider.transform.position).normalized;
                 dir += dodgeDirection;
-                break;
             }
         }
 
@@ -62,7 +93,7 @@ public class AIbehavior : MonoBehaviour
                 Vector2 playerVel=player.GetComponent<Rigidbody2D>().velocity;
                 if(InterceptionDirection(player.transform.position,transform.position,playerVel,shoot.bulletSpeed,out var direction))
                 {
-                    rb.rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg-90f;
+                    rb.rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg-90f+Random.Range(-2f,2f);
                 }
             }
             rb.angularVelocity = 0f;
