@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Tilemaps;
 
 public class AIbehavior : MonoBehaviour
 {
@@ -20,12 +21,17 @@ public class AIbehavior : MonoBehaviour
 
     public float escapeWeight = 6f;
 
-    public float travelWeight = 15f;
+    public float chaseWeight = 15f;
+
 
     public bool shouldUseLinerenderer = true;
     public LineRenderer lr;
 
     public float minDodgeAngle=10f;
+
+    public Tilemap level;
+
+    
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -42,26 +48,11 @@ public class AIbehavior : MonoBehaviour
         int wallCount = 0;
         
         
-        //Vector2[] directions = { Vector2.up, Vector2.right, Vector2.down, Vector2.left };
-        
-        //Vector2 escapeDirection = Vector2.zero;
 
-       // foreach (Vector2 x in directions)
-       // {
-          //  RaycastHit2D hit = Physics2D.Raycast(transform.position, x, raycastDistance, LayerMask.GetMask("walls"));
-            //if (hit.collider != null)
-        //    {
-      //          wallCount++;
-    //            escapeDirection -= x;
-
-
-      //      }
-    //    }
 
         if (wallCount >-1)
         {
-           
-        //    dir += escapeDirection.normalized*escapeWeight;
+
             float angle = 0f;
             for (int i = 0; i < 24; i++) 
             {
@@ -73,7 +64,7 @@ public class AIbehavior : MonoBehaviour
                     dir += direction * escapeWeight; 
                 }
 
-
+               
                 angle += 15f; 
             }
         }
@@ -91,7 +82,7 @@ public class AIbehavior : MonoBehaviour
 
                 if (ShouldDodge(collider.transform.position,collider.GetComponent<Rigidbody2D>().velocity)) {
                     dodgeDirection = CalculateDodgeDirection(collider.transform.position, collider.GetComponent<Rigidbody2D>().velocity);
-                    dir += dodgeDirection * bulletWeight;
+                    dir += dodgeDirection * bulletWeight*(3f/Vector2.Distance(transform.position,collider.transform.position));
                 }
             }
 
@@ -142,7 +133,7 @@ public class AIbehavior : MonoBehaviour
             perpendicularDirection = -perpendicularDirection;
         }
 
-        return perpendicularDirection;
+        return -perpendicularDirection;
     }
     
 
@@ -203,4 +194,8 @@ public class AIbehavior : MonoBehaviour
         return discriminant > 0 ? 2 : 1;
     }
 
+    public void toggleDebugMode()
+    {
+        shouldUseLinerenderer = !shouldUseLinerenderer;
+    }
 }
