@@ -24,6 +24,8 @@ public class AIbehavior : MonoBehaviour
 
     public bool shouldUseLinerenderer = true;
     public LineRenderer lr;
+
+    public float minDodgeAngle=10f;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -85,12 +87,12 @@ public class AIbehavior : MonoBehaviour
         {
             if (collider.CompareTag("bullet"))
             {
-                if (Vector2.Distance(collider.gameObject.transform.position, transform.position) > Vector2.Distance((Vector2)collider.gameObject.transform.position + 0.1f * collider.GetComponent<Rigidbody2D>().velocity, transform.position))
-                {
-                    dodgeDirection = (transform.position - collider.transform.position).normalized;
+                Rigidbody2D bulletrb = collider.GetComponent<Rigidbody2D>();
+
+                if (ShouldDodge(collider.transform.position,collider.GetComponent<Rigidbody2D>().velocity)) {
+                    dodgeDirection = CalculateDodgeDirection(collider.transform.position, collider.GetComponent<Rigidbody2D>().velocity);
                     dir += dodgeDirection * bulletWeight;
                 }
-                
             }
 
         }
@@ -130,6 +132,27 @@ public class AIbehavior : MonoBehaviour
     }
 
 
+    Vector2 CalculateDodgeDirection(Vector2 bulletPosition, Vector2 bulletVelocity)
+    {
+        Vector2 toBullet = bulletPosition - (Vector2)transform.position;
+        Vector2 perpendicularDirection = Vector2.Perpendicular(bulletVelocity.normalized);
+
+        if (Vector2.Dot(perpendicularDirection, toBullet) < 0)
+        {
+            perpendicularDirection = -perpendicularDirection;
+        }
+
+        return perpendicularDirection;
+    }
+    
+
+    bool ShouldDodge(Vector2 bulletPosition, Vector2 bulletVelocity)
+    {
+        Vector2 toBullet = bulletPosition - (Vector2)transform.position;
+        float dotProduct = Vector2.Dot(toBullet.normalized, bulletVelocity.normalized);
+
+        return dotProduct < 0 && Vector2.Angle(toBullet, -bulletVelocity) < minDodgeAngle;
+    }
 
 
     public Vector2 predictFuturePos(Vector2 initPos, Vector2 velocity, float time)
