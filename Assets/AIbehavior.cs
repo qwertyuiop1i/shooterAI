@@ -27,16 +27,25 @@ public class AIbehavior : MonoBehaviour
     public bool shouldUseLinerenderer = true;
     public LineRenderer lr;
 
+    public float distanceToMaintain = 15f;
+
     public float minDodgeAngle=10f;
 
     public Tilemap level;
 
-    
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         lr = GetComponent<LineRenderer>();
         
+        level.CompressBounds();
+        Debug.Log(level.GetTile(level.WorldToCell(new Vector2(-43.5f, 25.5f))));
+    }
+    
+    public Vector2 nextDir(Vector2 start, Vector2 goal)
+    {
+        return Vector2.zero;
     }
 
     // Update is called once per frame
@@ -198,4 +207,6 @@ public class AIbehavior : MonoBehaviour
     {
         shouldUseLinerenderer = !shouldUseLinerenderer;
     }
+
+    
 }
