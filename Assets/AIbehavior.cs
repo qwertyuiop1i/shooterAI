@@ -20,6 +20,7 @@ public class AIbehavior : MonoBehaviour
 
     public float escapeWeight = 6f;
 
+    public float travelWeight = 15f;
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -44,13 +45,29 @@ public class AIbehavior : MonoBehaviour
             {
                 wallCount++;
                 escapeDirection -= x;
+
+
             }
         }
 
-        if (wallCount >= 2)
+        if (wallCount >= 1)
         {
            
             dir += escapeDirection.normalized*escapeWeight;
+            float angle = 0f;
+            for (int i = 0; i < 24; i++) 
+            {
+                Vector2 direction = Quaternion.Euler(0, 0, angle) * Vector2.up; 
+                RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, raycastDistance, LayerMask.GetMask("walls"));
+
+                if (!hit.collider) 
+                {
+                    dir += direction * escapeWeight; 
+                }
+
+
+                angle += 15f; 
+            }
         }
 
 
@@ -62,7 +79,7 @@ public class AIbehavior : MonoBehaviour
         {
             if (collider.CompareTag("bullet"))
             {
-                //shouldDodge = true;
+                if(Vector2.Distance(collider.gameObject.transform.position,transform.position)>Vector2.Distance((Vector2)collider.gameObject.transform.position+0.1f*collider.GetComponent<Rigidbody2D>().velocity,transform.position))
                 dodgeDirection = (transform.position - collider.transform.position).normalized;
                 dir += dodgeDirection*bulletWeight+new Vector2(0.1f,0.1f);
                 
