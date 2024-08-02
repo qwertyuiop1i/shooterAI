@@ -12,6 +12,8 @@ public class AIbehavior : MonoBehaviour
 
     public GameObject ?player;
 
+    public float dodgeDistance = 2f;
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -25,20 +27,23 @@ public class AIbehavior : MonoBehaviour
 
         Vector2 dir = Vector2.zero;
 
-        Collider2D[] hits = Physics2D.OverlapCircleAll(transform.position, 2f);
-        foreach (Collider2D hit in hits)
-        {
-            if (hit.CompareTag("bullet"))
-            {
 
-                Vector2 bulletDirection = hit.transform.position - transform.position;
-                if (Vector2.Dot(bulletDirection, hit.GetComponent<Rigidbody2D>().velocity) > 0f)
-                {
-              
-                    dir -= bulletDirection.normalized;
-                }
+        Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, dodgeDistance);
+        /////bool shouldDodge = false;
+        Vector2 dodgeDirection = Vector2.zero;
+
+        foreach (Collider2D collider in hitColliders)
+        {
+            if (collider.CompareTag("bullet"))
+            {
+                shouldDodge = true;
+                dodgeDirection = (transform.position - collider.transform.position).normalized;
+                dir += dodgeDirection;
+                break;
             }
         }
+
+
 
         Vector2 movement = dir.normalized * speed;
         rb.velocity = movement;
@@ -55,11 +60,10 @@ public class AIbehavior : MonoBehaviour
             else
             {
                 Vector2 playerVel=player.GetComponent<Rigidbody2D>().velocity;
-                float estimatedTime = Vector2.Distance(shoot.firePoint.position, player.transform.position) / shoot.bulletSpeed;
-                Vector2 futurePos = predictDir(transform.position, shoot.bulletSpeed, player.transform.position, player.GetComponent<Rigidbody2D>().velocity);
-                rb.rotation = Mathf.Atan2(futurePos.y,futurePos.x) * Mathf.Rad2Deg+90f;
-                //predictFuturePos(player.transform, playerVel,t)
-                Debug.DrawLine(transform.position, futurePos);
+                if(InterceptionDirection(player.transform.position,transform.position,playerVel,shoot.bulletSpeed,out var direction))
+                {
+                    rb.rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg-90f;
+                }
             }
             rb.angularVelocity = 0f;
             shoot.Shoot();
@@ -67,54 +71,55 @@ public class AIbehavior : MonoBehaviour
 
     }
 
+
+
+
     public Vector2 predictFuturePos(Vector2 initPos, Vector2 velocity, float time)
     {
         return initPos + time * velocity;
     }
 
-    public Vector2 predictDir(Vector2 bulletPos, float bulletSpeed, Vector2 objectPos, Vector2 objectVel)
+    public bool InterceptionDirection(Vector2 a, Vector2 b, Vector2 vA, float sB, out Vector2 result)
     {
-        //law of cosine
+        var aToB= b - a;
+        var dC = aToB.magnitude;
 
-        Vector2 diff = objectPos - bulletPos;
-        float distA;
-        float distC = diff.magnitude;
-        float objectSpeed = objectVel.magnitude;
-        float theta = Vector2.Angle(diff, objectVel) * Mathf.Rad2Deg;
+        var alpha = Vector2.Angle(aToB, vA) * Mathf.Deg2Rad;
+        var sA = vA.magnitude;
 
-        float r = objectSpeed / bulletSpeed;
+        var r = sA / sB;
 
-        if (Solve(1 - r * r, 2 * r * distC * Mathf.Cos(theta), -(distC * distC), out float x1, out float x2))
+
+        if (SolveQuadratic(1-r*r,2*r*dC*Mathf.Cos(alpha),-(dC*dC),out var root1, out var root2) == 0)
         {
-            distA = Mathf.Max(x1, x2);
-            float time = distA / bulletSpeed;
-            Vector2 c = bulletPos + objectVel * time;
-            Vector2 result = (c - objectPos).normalized;
-            return result;
-
-        }
-        return Vector2.zero;
-
-    }
-
-    public bool Solve(float a, float b, float c, out float x1, out float x2)
-    {
-        x1 = 0;
-        x2 = 0;
-
-        float discriminant = b * b - 4 * a * c;
-
-        if (discriminant < 0)
-        {
-
+            result = Vector2.zero;
             return false;
         }
 
-        float sqrtDiscriminant = Mathf.Sqrt(discriminant);
+        var dA = Mathf.Max(root1,root2);
 
-        x1 = (-b + sqrtDiscriminant) / (2 * a);
-        x2 = (-b - sqrtDiscriminant) / (2 * a);
-
+        var t = dA / sB;
+        var c = a + vA * t;
+        result = (c - b).normalized;
         return true;
+
+        
     }
+
+    public int SolveQuadratic(float a, float b, float c, out float root1, out float root2)
+    {
+        var discriminant=b*b-4*a*c;
+
+        if (discriminant < 0) 
+        {
+            root1 = Mathf.Infinity;
+            root2 = -root1; 
+            return 0;
+        }
+
+        root1 = (-b + Mathf.Sqrt(discriminant)) / (2 * a);
+        root2 = (-b - Mathf.Sqrt(discriminant)) / (2 * a);
+        return discriminant > 0 ? 2 : 1;
+    }
+
 }
