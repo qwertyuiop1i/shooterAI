@@ -35,7 +35,10 @@ public class AIbehavior : MonoBehaviour
 
     public int[,] grid;
 
-    
+    public float pathmakerTime=2f;
+    public float time=0f;
+
+    public Vector2 chaseVector;
 
     public class Node
     {
@@ -94,6 +97,8 @@ public class AIbehavior : MonoBehaviour
         List<Node> closedList = new List<Node>();
         openList.Add(startPos);
 
+        Debug.Log($"Starting pathfinding from ({startPos.X},{startPos.Y}) to ({endPos.X},{endPos.Y})");
+
         bool ValidNode(int x, int y)
         {
             return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight && grid[x, y] == 0;
@@ -114,17 +119,21 @@ public class AIbehavior : MonoBehaviour
             openList.Remove(currentNode);
             closedList.Add(currentNode);
 
-            if (currentNode == endPos)
+            Debug.Log($"Current Node: ({currentNode.X},{currentNode.Y}) - GCost: {currentNode.GCost}, HCost: {currentNode.HCost}, FCost: {currentNode.FCost}");
+
+            if ((currentNode.X == endPos.X)&&(currentNode.Y==endPos.Y))
             {
                 List<Node> path = new List<Node>();
                 while (currentNode != null)
                 {
                     path.Add(currentNode);
                     currentNode = currentNode.parent;
+
+                   
                 }
                 path.Reverse();
                 var worldCoords =level.CellToWorld(new Vector3Int(path[1].X, path[1].Y,0));
-                return new Vector2(worldCoords.x,worldCoords.y);
+                return (new Vector2(worldCoords.x,worldCoords.y)-(Vector2)transform.position).normalized;
 
             }
 
@@ -154,6 +163,7 @@ public class AIbehavior : MonoBehaviour
                     }
                     if (!openList.Contains(neighbor) || neighbor.GCost < openList[openList.IndexOf(neighbor)].GCost)
                     {
+                        Debug.Log($"Current Node: ({currentNode.X},{currentNode.Y}) - GCost: {currentNode.GCost}, HCost: {currentNode.HCost}, FCost: {currentNode.FCost}");
                         openList.Add(neighbor);
                     }
             
@@ -162,18 +172,33 @@ public class AIbehavior : MonoBehaviour
             }
         }
 
-
-        return transform.position;
+       Debug.Log("NO pATH");
+        return Vector2.zero;
 
     }
 
     // Update is called once per frame
     void Update()
+
     {
-        //Vector2 chaseVector=chaseWeight*NextDir(transform.position,new Vector3(0,0,0));
-
-
+        if (Input.GetMouseButtonDown(0))
+        {
+            var mouseTile = level.WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
+            Debug.Log(level.GetTile(new Vector3Int(mouseTile.x,mouseTile.y,0)));
+        }
         Vector2 dir = Vector2.zero;
+
+        time += Time.deltaTime;
+
+        if (time >= pathmakerTime)
+        {
+            chaseVector = chaseWeight * NextDir(transform.position, player.transform.position).normalized;
+            time = 0f;
+            Debug.Log("New Path, going towards " + chaseVector);
+        }
+        
+
+        
 
 
         int wallCount = 0;
@@ -218,7 +243,7 @@ public class AIbehavior : MonoBehaviour
             }
 
         }
-        //dir += chaseVector;
+        dir += chaseVector;
 
 
         Vector2 movement = dir.normalized * speed;
@@ -244,8 +269,8 @@ public class AIbehavior : MonoBehaviour
             rb.angularVelocity = 0f;
             if (shouldUseLinerenderer)
             {
-                lr.SetPosition(0, transform.position);
-                lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2),Mathf.Sin(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2))*50f);
+         //       lr.SetPosition(0, transform.position);
+          //      lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2),Mathf.Sin(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2))*50f);
             }
 
             shoot.Shoot();
