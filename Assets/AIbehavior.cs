@@ -34,6 +34,25 @@ public class AIbehavior : MonoBehaviour
     public Tilemap level;
 
     public int[,] grid;
+
+    
+
+    public class Node
+    {
+        public int X;
+        public int Y;
+        public int GCost;
+        public int HCost;
+        public int FCost { get { return GCost + HCost; } }
+        public Node parent;
+
+        public Node(int x, int y)
+        {
+            this.X = x;
+            this.Y = y;
+        }
+    }
+
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
@@ -63,29 +82,59 @@ public class AIbehavior : MonoBehaviour
     
     public Vector2 NextDir(Vector3 start, Vector3 goal)
     {
-        Vector3Int startPos = level.WorldToCell(start);
-        Vector3Int goalPos = level.WorldToCell(goal);
 
-        int[,] distances = new int[level.size.x, level.size.y];
-        bool[,] visited = new bool[level.size.x, level.size.y];
 
-        float Hcost;
-        float Gcost;
-        float Fcost;
+        Node startPos =new Node(level.WorldToCell(start).x,level.WorldToCell(start).y);
+        Node endPos = new Node(level.WorldToCell(goal).x, level.WorldToCell(goal).y);
 
-        for (int x = 0; x < level.size.x; x++)
+        int gridWidth = level.size.x;
+        int gridHeight = level.size.y;
+
+        List<Node> openList = new List<Node>();
+        List<Node> closedList = new List<Node>();
+        openList.Add(startPos);
+
+        bool ValidNode(int x, int y)
         {
-            for (int y = 0; y < level.size.y; y++)
+            return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight && grid[x, y] == 0;
+        }
+
+        while (openList.Count > 0)
+        {
+            Node currentNode = openList[0];
+
+            for(int i = 1; i < openList.Count; i++)
             {
-                distances[x, y] = int.MaxValue;
-                visited[x, y] = false;
+                if (openList[i].FCost < currentNode.FCost)
+                {
+                    currentNode = openList[i];
+                }
+
+            }
+            openList.Remove(currentNode);
+            closedList.Add(currentNode);
+
+            if (currentNode == endPos)
+            {
+                ///create path
+            }
+
+            for(int x = -1; x <= 1; x++)
+            {
+                for(int y = -1; y <= 1; y++)
+                {
+                    if (x == 0 && y == 0) continue;
+
+                    int neighborX = currentNode.X + x;
+                    int neighborY = currentNode.Y + y;
+
+
+
+                }
             }
         }
 
-        distances[(int)start.x,(int) start.y] = 0;
-
-        PriorityQueue<(int, int), int> pq = new PriorityQueue<(int, int), int>();
-        pq.Enqueue((startX, startY), 0);
+        
 
     }
 
@@ -252,5 +301,10 @@ public class AIbehavior : MonoBehaviour
         shouldUseLinerenderer = !shouldUseLinerenderer;
     }
 
-    
+    private float HeuristicDistance(Node a, Node b)
+    {
+        return Vector2.Distance(new Vector2(a.X,a.Y), new Vector2(b.X,b.Y));//pythag heusrtic.
+    }
+
+
 }
