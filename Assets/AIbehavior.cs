@@ -65,7 +65,8 @@ public class AIbehavior : MonoBehaviour
         //Debug.Log(level.GetTile(level.WorldToCell(new Vector2(-43.5f, 25.5f))));
 
         grid = new int[level.size.x, level.size.y];
-
+        Debug.Log("X: " + level.size.x);
+        Debug.Log("Y: " + level.size.y);
         for (int x = 0; x < level.size.x; x++)
         {
             for (int y = 0; y < level.size.y; y++)
@@ -86,7 +87,7 @@ public class AIbehavior : MonoBehaviour
     public Vector2 NextDir(Vector3 start, Vector3 goal)
     {
 
-
+        Debug.Log("Start pathing");
         Node startPos =new Node(level.WorldToCell(start).x,level.WorldToCell(start).y);
         Node endPos = new Node(level.WorldToCell(goal).x, level.WorldToCell(goal).y);
 
@@ -101,7 +102,7 @@ public class AIbehavior : MonoBehaviour
 
         bool ValidNode(int x, int y)
         {
-            return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight && grid[x, y] == 0;
+            return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight && level.GetTile(new Vector3Int(x,y,0))==null;
         }
 
         while (openList.Count > 0)
@@ -148,6 +149,7 @@ public class AIbehavior : MonoBehaviour
 
                     if (!ValidNode(neighborX, neighborY))
                     {
+                        Debug.Log("Invalid Neighbor");
                         continue;
                     }
 
@@ -156,6 +158,7 @@ public class AIbehavior : MonoBehaviour
                     neighbor.HCost = HeuristicDistance(neighbor, endPos);
                     neighbor.FCost = neighbor.GCost + neighbor.HCost;
                     neighbor.parent = currentNode;
+                    Debug.Log("Parenting");
 
                     if (closedList.Contains(neighbor))
                     {
@@ -184,7 +187,7 @@ public class AIbehavior : MonoBehaviour
         if (Input.GetMouseButtonDown(0))
         {
             var mouseTile = level.WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
-            Debug.Log(level.GetTile(new Vector3Int(mouseTile.x,mouseTile.y,0)));
+            Debug.Log("BlockType: "+level.GetTile(new Vector3Int(mouseTile.x,mouseTile.y,0))+" Tile Coords: "+new Vector2(mouseTile.x,mouseTile.y));
         }
         Vector2 dir = Vector2.zero;
 
