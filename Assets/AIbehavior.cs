@@ -40,6 +40,8 @@ public class AIbehavior : MonoBehaviour
 
     public Vector2 chaseVector;
 
+    int gridWidth;
+    int gridHeight;
     public class Node
     {
         public int X;
@@ -82,8 +84,34 @@ public class AIbehavior : MonoBehaviour
                 
             }
         }
+        gridWidth = level.size.x;
+        gridHeight = level.size.y;
     }
-    
+
+    bool ValidNode(int x, int y)
+    {
+        if (x < 0 || x >= gridWidth)
+        {
+            Debug.LogError($"Invalid x: {x}, must be between 0 and {gridWidth - 1}");
+            return false;
+        }
+
+        if (y < 0 || y >= gridHeight)
+        {
+            Debug.LogError($"Invalid y: {y}, must be between 0 and {gridHeight - 1}");
+            return false;
+        }
+
+        var tile = level.GetTile(new Vector3Int(x, y, 0));
+        if (tile != null)
+        {
+            Debug.LogError($"Tile found at ({x}, {y})");
+            return false;
+        }
+
+        return true;
+    }
+
     public Vector2 NextDir(Vector3 start, Vector3 goal)
     {
 
@@ -91,8 +119,7 @@ public class AIbehavior : MonoBehaviour
         Node startPos =new Node(level.WorldToCell(start).x,level.WorldToCell(start).y);
         Node endPos = new Node(level.WorldToCell(goal).x, level.WorldToCell(goal).y);
 
-        int gridWidth = level.size.x;
-        int gridHeight = level.size.y;
+        
 
         List<Node> openList = new List<Node>();
         List<Node> closedList = new List<Node>();
@@ -100,10 +127,7 @@ public class AIbehavior : MonoBehaviour
 
         Debug.Log($"Starting pathfinding from ({startPos.X},{startPos.Y}) to ({endPos.X},{endPos.Y})");
 
-        bool ValidNode(int x, int y)
-        {
-            return x >= 0 && x < gridWidth && y >= 0 && y < gridHeight && level.GetTile(new Vector3Int(x,y,0))==null;
-        }
+        
 
         while (openList.Count > 0)
         {
@@ -147,7 +171,7 @@ public class AIbehavior : MonoBehaviour
                     int neighborX = currentNode.X + x;
                     int neighborY = currentNode.Y + y;
 
-                    if (!ValidNode(neighborX, neighborY))
+                    if (!ValidNode(neighborX+46, neighborY+26))
                     {
                         Debug.Log("Invalid Neighbor");
                         continue;
@@ -195,13 +219,15 @@ public class AIbehavior : MonoBehaviour
 
         if (time >= pathmakerTime)
         {
+            Debug.Log("About to start pathfinding");
             chaseVector = chaseWeight * NextDir(transform.position, player.transform.position).normalized;
             time = 0f;
             Debug.Log("New Path, going towards " + chaseVector);
         }
-        
 
-        
+        dir += chaseVector;
+
+
 
 
         int wallCount = 0;
@@ -246,8 +272,7 @@ public class AIbehavior : MonoBehaviour
             }
 
         }
-        dir += chaseVector;
-
+        
 
         Vector2 movement = dir.normalized * speed;
         rb.velocity = movement;

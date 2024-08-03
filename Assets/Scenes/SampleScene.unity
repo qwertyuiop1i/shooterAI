@@ -9260,7 +9260,7 @@ MonoBehaviour:
   distanceToMaintain: 15
   minDodgeAngle: 62.18
   level: {fileID: 1014229085}
-  pathmakerTime: 76.72
+  pathmakerTime: 2
   time: 0
   chaseVector: {x: 0, y: 0}
 --- !u!58 &1685446174
