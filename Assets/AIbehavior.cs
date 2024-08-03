@@ -11,7 +11,7 @@ public class AIbehavior : MonoBehaviour
     [SerializeField]
     private AIshoot shoot;
 
-    public GameObject ?player;
+    public GameObject player;
 
     public float dodgeDistance = 2f;
 
@@ -42,6 +42,8 @@ public class AIbehavior : MonoBehaviour
 
     int gridWidth;
     int gridHeight;
+
+    public float playerAvoidWeight = 2f;
     public class Node
     {
         public int X;
@@ -220,7 +222,7 @@ public class AIbehavior : MonoBehaviour
         if (time >= pathmakerTime)
         {
             Debug.Log("About to start pathfinding");
-            chaseVector = chaseWeight * NextDir(transform.position, player.transform.position).normalized;
+           // chaseVector = chaseWeight * NextDir(transform.position, player.transform.position).normalized;
             time = 0f;
             Debug.Log("New Path, going towards " + chaseVector);
         }
@@ -230,29 +232,22 @@ public class AIbehavior : MonoBehaviour
 
 
 
-        int wallCount = 0;
-        
-        
 
-
-        if (wallCount >-1)
+       float angle = 0f;
+        for (int i = 0; i < 24; i++)
         {
+            Vector2 direction = Quaternion.Euler(0, 0, angle) * Vector2.up;
+            RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, raycastDistance, LayerMask.GetMask("walls"));
 
-            float angle = 0f;
-            for (int i = 0; i < 24; i++) 
+            if (!hit)
             {
-                Vector2 direction = Quaternion.Euler(0, 0, angle) * Vector2.up; 
-                RaycastHit2D hit = Physics2D.Raycast(transform.position, direction, raycastDistance, LayerMask.GetMask("walls"));
-
-                if (!hit) 
-                {
-                    dir += direction * escapeWeight; 
-                }
-
-               
-                angle += 15f; 
+                dir += direction * escapeWeight;
             }
+
+
+            angle += 15f;
         }
+        
 
 
         Collider2D[] hitColliders = Physics2D.OverlapCircleAll(transform.position, dodgeDistance);
@@ -272,7 +267,12 @@ public class AIbehavior : MonoBehaviour
             }
 
         }
-        
+
+
+        if (Vector2.Distance(transform.position, player.transform.position)<=distanceToMaintain)
+        {
+            dir += (Vector2)(transform.position - player.transform.position) * playerAvoidWeight;
+        }
 
         Vector2 movement = dir.normalized * speed;
         rb.velocity = movement;
