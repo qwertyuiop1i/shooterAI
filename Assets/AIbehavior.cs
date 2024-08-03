@@ -41,9 +41,9 @@ public class AIbehavior : MonoBehaviour
     {
         public int X;
         public int Y;
-        public int GCost;
-        public int HCost;
-        public int FCost { get { return GCost + HCost; } }
+        public float GCost;
+        public float HCost;
+        public float FCost;
         public Node parent;
 
         public Node(int x, int y)
@@ -116,7 +116,16 @@ public class AIbehavior : MonoBehaviour
 
             if (currentNode == endPos)
             {
-                ///create path
+                List<Node> path = new List<Node>();
+                while (currentNode != null)
+                {
+                    path.Add(currentNode);
+                    currentNode = currentNode.parent;
+                }
+                path.Reverse();
+                var worldCoords =level.CellToWorld(new Vector3Int(path[1].X, path[1].Y,0));
+                return new Vector2(worldCoords.x,worldCoords.y);
+
             }
 
             for(int x = -1; x <= 1; x++)
@@ -128,20 +137,40 @@ public class AIbehavior : MonoBehaviour
                     int neighborX = currentNode.X + x;
                     int neighborY = currentNode.Y + y;
 
+                    if (!ValidNode(neighborX, neighborY))
+                    {
+                        continue;
+                    }
 
+                    Node neighbor = new Node(neighborX, neighborY);
+                    neighbor.GCost = currentNode.GCost + 1;
+                    neighbor.HCost = HeuristicDistance(neighbor, endPos);
+                    neighbor.FCost = neighbor.GCost + neighbor.HCost;
+                    neighbor.parent = currentNode;
+
+                    if (closedList.Contains(neighbor))
+                    {
+                        continue;
+                    }
+                    if (!openList.Contains(neighbor) || neighbor.GCost < openList[openList.IndexOf(neighbor)].GCost)
+                    {
+                        openList.Add(neighbor);
+                    }
+            
 
                 }
             }
         }
 
-        
+
+        return transform.position;
 
     }
 
     // Update is called once per frame
     void Update()
     {
-        nextDir(Vector2.one,Vector2.zero);
+        //Vector2 chaseVector=chaseWeight*NextDir(transform.position,new Vector3(0,0,0));
 
 
         Vector2 dir = Vector2.zero;
@@ -189,7 +218,7 @@ public class AIbehavior : MonoBehaviour
             }
 
         }
-
+        //dir += chaseVector;
 
 
         Vector2 movement = dir.normalized * speed;
