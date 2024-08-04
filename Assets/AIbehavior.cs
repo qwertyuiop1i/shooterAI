@@ -210,6 +210,8 @@ public class AIbehavior : MonoBehaviour
     void Update()
 
     {
+        rb.velocity = Vector2.zero;
+
         targetedEnemy = null;
         float closestDistance = int.MaxValue;
         foreach (GameObject enemy in GameObject.FindGameObjectsWithTag("Player"))
