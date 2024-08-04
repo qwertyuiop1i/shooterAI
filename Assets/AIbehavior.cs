@@ -261,8 +261,10 @@ public class AIbehavior : MonoBehaviour
 
             if (!hit)
             {
+                //Debug.Log(direction * escapeWeight);
                 dir += direction * escapeWeight;
             }
+            
 
 
             angle += 15f;
@@ -287,51 +289,52 @@ public class AIbehavior : MonoBehaviour
             }
 
         }
-
+        if (targetedEnemy) { 
 
         if (Vector2.Distance(transform.position, targetedEnemy.transform.position)<=distanceToMaintain)
         {
             dir += (Vector2)(transform.position - targetedEnemy.transform.position) * playerAvoidWeight;
         }
-        else
-        {
-            dir-=(Vector2)(transform.position - targetedEnemy.transform.position) * playerAvoidWeight*0.5f;
-        }
+      //  else
+     //   {
+     //       dir-=(Vector2)(transform.position - targetedEnemy.transform.position) * playerAvoidWeight*0.2f;
+    //    }
 
         Vector2 movement = dir.normalized * speed;
         rb.velocity = movement;
 
-        if (Time.time >= shoot.nextTimeToFire)
-        {
-            //if AI shoots ASAP, it needs to determine what angle it should shoot, so that it intercepts teh player perfectly.
-            //A. determine how long object
-            if (targetedEnemy.GetComponent<Rigidbody2D>().velocity.magnitude == 0f)
+            if (Time.time >= shoot.nextTimeToFire)
             {
-
-                rb.rotation = Mathf.Atan2(targetedEnemy.transform.position.y-transform.position.y, targetedEnemy.transform.position.x-transform.position.x) * Mathf.Rad2Deg-90f;
-            }
-            else
-            {
-                Vector2 playerVel=targetedEnemy.GetComponent<Rigidbody2D>().velocity;
-                if(InterceptionDirection(targetedEnemy.transform.position,transform.position,playerVel,shoot.bulletSpeed,out var direction))
+                //if AI shoots ASAP, it needs to determine what angle it should shoot, so that it intercepts teh player perfectly.
+                //A. determine how long object
+                if (targetedEnemy.GetComponent<Rigidbody2D>().velocity.magnitude == 0f)
                 {
-                    rb.rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg-90f+Random.Range(-2f,2f);
-                }
-            }
-            rb.angularVelocity = 0f;
-            if (shouldUseLinerenderer)
-            {
-                lr.enabled = true;
-                lr.SetPosition(0, transform.position);
-                lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2),Mathf.Sin(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2))*50f);
-            }
-            else
-            {
-                lr.enabled = false;
-            }
-            
 
-            shoot.Shoot();
+                    rb.rotation = Mathf.Atan2(targetedEnemy.transform.position.y - transform.position.y, targetedEnemy.transform.position.x - transform.position.x) * Mathf.Rad2Deg - 90f;
+                }
+                else
+                {
+                    Vector2 playerVel = targetedEnemy.GetComponent<Rigidbody2D>().velocity;
+                    if (InterceptionDirection(targetedEnemy.transform.position, transform.position, playerVel, shoot.bulletSpeed, out var direction))
+                    {
+                        rb.rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg - 90f + Random.Range(-2f, 2f);
+                    }
+                }
+                rb.angularVelocity = 0f;
+                if (shouldUseLinerenderer)
+                {
+                    lr.enabled = true;
+                    lr.SetPosition(0, transform.position);
+                    lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation * Mathf.Deg2Rad + Mathf.PI / 2), Mathf.Sin(rb.rotation * Mathf.Deg2Rad + Mathf.PI / 2)) * 50f);
+                }
+                else
+                {
+                    lr.enabled = false;
+                }
+
+
+                shoot.Shoot();
+            }
         }
 
     }
