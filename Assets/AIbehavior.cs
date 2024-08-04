@@ -11,7 +11,7 @@ public class AIbehavior : MonoBehaviour
     [SerializeField]
     private AIshoot shoot;
 
-    public GameObject player;
+    public GameObject targetedEnemy;
 
     public float dodgeDistance = 2f;
 
@@ -210,6 +210,24 @@ public class AIbehavior : MonoBehaviour
     void Update()
 
     {
+        targetedEnemy = null;
+        float closestDistance = int.MaxValue;
+        foreach (GameObject enemy in GameObject.FindGameObjectsWithTag("Player"))
+
+        {
+            if (enemy != gameObject&&CanSeeTarget(enemy.transform.position))
+            {
+                float distance = Vector2.Distance(transform.position, enemy.transform.position);
+                if (distance < closestDistance)
+                {
+                    targetedEnemy = enemy;
+                    closestDistance = distance;
+
+                }
+            }
+        }
+
+
         if (Input.GetMouseButtonDown(0))
         {
             var mouseTile = level.WorldToCell(Camera.main.ScreenToWorldPoint(Input.mousePosition));
@@ -227,7 +245,7 @@ public class AIbehavior : MonoBehaviour
             Debug.Log("New Path, going towards " + chaseVector);
         }
 
-        dir += chaseVector;
+     //   dir += chaseVector;
 
 
 
@@ -269,9 +287,13 @@ public class AIbehavior : MonoBehaviour
         }
 
 
-        if (Vector2.Distance(transform.position, player.transform.position)<=distanceToMaintain)
+        if (Vector2.Distance(transform.position, targetedEnemy.transform.position)<=distanceToMaintain)
         {
-            dir += (Vector2)(transform.position - player.transform.position) * playerAvoidWeight;
+            dir += (Vector2)(transform.position - targetedEnemy.transform.position) * playerAvoidWeight;
+        }
+        else
+        {
+            dir-=(Vector2)(transform.position - targetedEnemy.transform.position) * playerAvoidWeight*0.5f;
         }
 
         Vector2 movement = dir.normalized * speed;
@@ -281,15 +303,15 @@ public class AIbehavior : MonoBehaviour
         {
             //if AI shoots ASAP, it needs to determine what angle it should shoot, so that it intercepts teh player perfectly.
             //A. determine how long object
-            if (player.GetComponent<Rigidbody2D>().velocity.magnitude == 0f)
+            if (targetedEnemy.GetComponent<Rigidbody2D>().velocity.magnitude == 0f)
             {
 
-                rb.rotation = Mathf.Atan2(player.transform.position.y-transform.position.y, player.transform.position.x-transform.position.x) * Mathf.Rad2Deg-90f;
+                rb.rotation = Mathf.Atan2(targetedEnemy.transform.position.y-transform.position.y, targetedEnemy.transform.position.x-transform.position.x) * Mathf.Rad2Deg-90f;
             }
             else
             {
-                Vector2 playerVel=player.GetComponent<Rigidbody2D>().velocity;
-                if(InterceptionDirection(player.transform.position,transform.position,playerVel,shoot.bulletSpeed,out var direction))
+                Vector2 playerVel=targetedEnemy.GetComponent<Rigidbody2D>().velocity;
+                if(InterceptionDirection(targetedEnemy.transform.position,transform.position,playerVel,shoot.bulletSpeed,out var direction))
                 {
                     rb.rotation = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg-90f+Random.Range(-2f,2f);
                 }
@@ -297,9 +319,15 @@ public class AIbehavior : MonoBehaviour
             rb.angularVelocity = 0f;
             if (shouldUseLinerenderer)
             {
-         //       lr.SetPosition(0, transform.position);
-          //      lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2),Mathf.Sin(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2))*50f);
+                lr.enabled = true;
+                lr.SetPosition(0, transform.position);
+                lr.SetPosition(1, (Vector2)transform.position + new Vector2(Mathf.Cos(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2),Mathf.Sin(rb.rotation*Mathf.Deg2Rad+Mathf.PI/2))*50f);
             }
+            else
+            {
+                lr.enabled = false;
+            }
+            
 
             shoot.Shoot();
         }
@@ -386,6 +414,12 @@ public class AIbehavior : MonoBehaviour
     private float HeuristicDistance(Node a, Node b)
     {
         return Vector2.Distance(new Vector2(a.X,a.Y), new Vector2(b.X,b.Y));//pythag heusrtic.
+    }
+
+    bool CanSeeTarget(Vector3 targetPosition)
+    {
+        RaycastHit2D hit = Physics2D.Raycast(transform.position, targetPosition - transform.position, Vector3.Distance(transform.position, targetPosition), LayerMask.GetMask("walls"));
+        return hit.collider == null;
     }
 
 

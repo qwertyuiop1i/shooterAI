@@ -5,6 +5,7 @@ using UnityEngine;
 public class bulletScript : MonoBehaviour
 {
     // Start is called before the first frame update
+    
     void Start()
     {
         
@@ -27,4 +28,5 @@ public class bulletScript : MonoBehaviour
             Destroy(gameObject);
         }
     }
+    
 }
